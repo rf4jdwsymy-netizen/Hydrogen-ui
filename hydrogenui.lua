@@ -4,26 +4,22 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local HttpService = game:GetService("HttpService")
-local CoreGui = game:GetService("CoreGui")
 
 local OrionLib = {
 	Elements = {},
 	ThemeObjects = {},
 	Connections = {},
 	Flags = {},
-
 	Themes = {
 		Default = {
-			Main = Color3.fromRGB(235, 250, 255),
-			Second = Color3.fromRGB(220, 245, 255),
-			Stroke = Color3.fromRGB(0, 220, 255),
-			Divider = Color3.fromRGB(120, 220, 255),
-
-			Text = Color3.fromRGB(20, 40, 50),
-			TextDark = Color3.fromRGB(80, 150, 170)
+			Main = Color3.fromRGB(0, 0, 0),
+			Second = Color3.fromRGB(0, 0, 0),
+			Stroke = Color3.fromRGB(0, 255, 0),
+			Divider = Color3.fromRGB(0, 0, 0),
+			Text = Color3.fromRGB(255, 255, 255),
+			TextDark = Color3.fromRGB(0, 255, 255)
 		}
 	},
-
 	SelectedTheme = "Default",
 	Folder = nil,
 	SaveCfg = false
@@ -37,6 +33,7 @@ local Success, Response = pcall(function()
 end)
 
 if not Success then
+	warn("\nOrion Library - Failed to load Feather Icons. Error code: " .. Response .. "\n")
 end	
 
 local function GetIcon(IconName)
@@ -45,28 +42,15 @@ local function GetIcon(IconName)
 	else
 		return nil
 	end
-end
-
-local useStudio = RunService:IsStudio() or false
+end   
 
 local Orion = Instance.new("ScreenGui")
-local Modal = Instance.new("TextButton")
-
-local FocusDrag = nil
-Orion.Name = "OrionUI"
-
-
-getgenv().gethui = function() return game.CoreGui end
-
-if gethui then
-	Orion.Parent = gethui()
-elseif syn and syn.protect_gui then 
-	syn.protect_gui(Rayfield)
-	Orion.Parent = CoreGui
-elseif not useStudio and CoreGui:FindFirstChild("RobloxGui") then
-	Orion.Parent = CoreGui:FindFirstChild("RobloxGui")
-elseif not useStudio then
-	Orion.Parent = CoreGui
+Orion.Name = "Orion"
+if syn then
+	syn.protect_gui(Orion)
+	Orion.Parent = game.CoreGui
+else
+	Orion.Parent = gethui() or game.CoreGui
 end
 
 if gethui then
@@ -89,6 +73,7 @@ function OrionLib:IsRunning()
 	else
 		return Orion.Parent == game:GetService("CoreGui")
 	end
+
 end
 
 local function AddConnection(Signal, Function)
@@ -134,7 +119,7 @@ local function MakeDraggable(DragPoint, Main)
 		AddConnection(UserInputService.InputChanged, function(Input)
 			if Input == DragInput and Dragging then
 				local Delta = Input.Position - MousePos
-				--TweenService:Create(Main, TweenInfo.new(0.05, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play()
+				TweenService:Create(Main, TweenInfo.new(0.05, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play()
 				Main.Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)
 			end
 		end)
@@ -151,8 +136,6 @@ local function Create(Name, Properties, Children)
 	end
 	return Object
 end
-
-
 
 local function CreateElement(ElementName, ElementFunction)
 	OrionLib.Elements[ElementName] = function(...)
@@ -178,7 +161,6 @@ local function SetChildren(Element, Children)
 	end)
 	return Element
 end
-
 
 local function Round(Number, Factor)
 	local Result = math.floor(Number/Factor + (math.sign(Number) * 0.5)) * Factor
@@ -241,7 +223,7 @@ local function LoadCfg(Config)
 				end    
 			end)
 		else
-			
+			warn("Orion Library Config Loader - Could not find ", a ,b)
 		end
 	end)
 end
@@ -260,30 +242,8 @@ local function SaveCfg(Name)
 	writefile(OrionLib.Folder .. "/" .. Name .. ".txt", tostring(HttpService:JSONEncode(Data)))
 end
 
-local WhitelistedMouse = {Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2,Enum.UserInputType.MouseButton3}
+local WhitelistedMouse = {Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2,Enum.UserInputType.MouseButton3,Enum.UserInputType.Touch}
 local BlacklistedKeys = {Enum.KeyCode.Unknown,Enum.KeyCode.W,Enum.KeyCode.A,Enum.KeyCode.S,Enum.KeyCode.D,Enum.KeyCode.Up,Enum.KeyCode.Left,Enum.KeyCode.Down,Enum.KeyCode.Right,Enum.KeyCode.Slash,Enum.KeyCode.Tab,Enum.KeyCode.Backspace,Enum.KeyCode.Escape}
-
-local freeMouse = Create("TextButton", {Name = "FMouse", Size = UDim2.new(), BackgroundTransparency = 1, Text = "", Position = UDim2.new(), Modal = true, Parent = Orion, Visible = false})
-local mouselock = false
-
-local function UnlockMouse(Value)
-	if Value then
-		mouselock = true
-
-		task.spawn(function() 
-			while mouselock do
-				UserInputService.MouseIconEnabled = Value
-				freeMouse.Visible = Value
-				task.wait()
-			end
-
-			UserInputService.MouseIconEnabled = false
-			freeMouse.Visible = false
-		end)
-	else
-		mouselock = false
-	end
-end
 
 local function CheckKey(Table, Key)
 	for _, v in next, Table do
@@ -298,11 +258,6 @@ CreateElement("Corner", function(Scale, Offset)
 		CornerRadius = UDim.new(Scale or 0, Offset or 10)
 	})
 	return Corner
-end)
-
-CreateElement("AspectRatio", function()
-	local AspectRatio = Create("UIAspectRatioConstraint")
-	return AspectRatio
 end)
 
 CreateElement("Stroke", function(Color, Thickness)
@@ -409,7 +364,7 @@ CreateElement("Label", function(Text, TextSize, Transparency)
 		TextColor3 = Color3.fromRGB(240, 240, 240),
 		TextTransparency = Transparency or 0,
 		TextSize = TextSize or 15,
-		Font = Enum.Font.Gotham,
+		Font = Enum.Font.Roboto,
 		RichText = true,
 		BackgroundTransparency = 1,
 		TextXAlignment = Enum.TextXAlignment.Left
@@ -505,16 +460,13 @@ function OrionLib:Init()
 			end
 		end)		
 	end	
-end
-
-
+end	
 
 function OrionLib:MakeWindow(WindowConfig)
 	local FirstTab = true
 	local Minimized = false
 	local Loaded = false
 	local UIHidden = false
-	
 
 	WindowConfig = WindowConfig or {}
 	WindowConfig.Name = WindowConfig.Name or "Orion Library"
@@ -524,8 +476,6 @@ function OrionLib:MakeWindow(WindowConfig)
 	if WindowConfig.IntroEnabled == nil then
 		WindowConfig.IntroEnabled = true
 	end
-	WindowConfig.FreeMouse = WindowConfig.FreeMouse or false
-	WindowConfig.KeyToOpenWindow = WindowConfig.KeyToOpenWindow or "K"
 	WindowConfig.IntroText = WindowConfig.IntroText or "Orion Library"
 	WindowConfig.CloseCallback = WindowConfig.CloseCallback or function() end
 	WindowConfig.ShowIcon = WindowConfig.ShowIcon or false
@@ -533,37 +483,12 @@ function OrionLib:MakeWindow(WindowConfig)
 	WindowConfig.IntroIcon = WindowConfig.IntroIcon or "rbxassetid://8834748103"
 	OrionLib.Folder = WindowConfig.ConfigFolder
 	OrionLib.SaveCfg = WindowConfig.SaveConfig
+
 	if WindowConfig.SaveConfig then
 		if not isfolder(WindowConfig.ConfigFolder) then
 			makefolder(WindowConfig.ConfigFolder)
 		end	
 	end
-
-	if WindowConfig.FreeMouse then
-		UnlockMouse(true)
-	end
-
-	local MobileOpenButton = SetChildren(SetProps(MakeElement("Button"), 
-	
-	{
-		BackgroundTransparency = 0, 
-		Parent = Orion, 
-		Text =  "Open",
-		TextScaled = true,
-		TextSize = 14,
-		TextColor3 = Color3.new(0, 0, 0),
-		BackgroundColor = BrickColor.new(0, 0, 0),
-		TextStrokeColor3 = Color3.new(255, 255, 255),
-		TextStrokeTransparency = 0,
-		Size = UDim2.new(0.035, 0, 0.035, 0),
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 0, 0.5, 0), 
-		Visible = false, 
-		Font = Enum.Font.GothamBold
-	}), {MakeElement("Corner", 0.25), SetProps(MakeElement("AspectRatio"), {DominantAxis = 0, AspectRatio = 0.986, AspectType = 1})})
-
-	MakeDraggable(MobileOpenButton, MobileOpenButton)
-
 
 	local TabHolder = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255, 255, 255), 4), {
 		Size = UDim2.new(1, 0, 1, -50)
@@ -720,67 +645,132 @@ function OrionLib:MakeWindow(WindowConfig)
 
 	MakeDraggable(DragPoint, MainWindow)
 
-	AddConnection(MobileOpenButton.MouseButton1Click, function() 
-		MobileOpenButton.Visible = false
-		MainWindow.Visible = true
-		UIHidden = false
-	end)
+-- Function to make any UI element draggable
+function MakeDraggable(Frame, Button)
+    local dragging = false
+    local dragInput, mousePos, framePos
 
-	local function showMobileOpenButton()
-		if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
-			if UIHidden then
-				MobileOpenButton.Visible = true
-			else
-				MobileOpenButton.Visible = false
-			end
-		end
-	end
+    Button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            mousePos = input.Position
+            framePos = Frame.Position
 
-	AddConnection(CloseBtn.MouseButton1Up, function()
-		MainWindow.Visible = false
-		UIHidden = true
-		
-		if WindowConfig.FreeMouse then
-			UnlockMouse(false)
-		end
-		
-		OrionLib:MakeNotification({
-			Name = "Interface Hidden",
-			Content = "Tap "  .. WindowConfig.KeyToOpenWindow .. " to reopen the interface",
-			Time = 3
-		})
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
 
-		showMobileOpenButton()
-		WindowConfig.CloseCallback()
-	end)
+    Button.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
 
-	AddConnection(UserInputService.InputBegan, function(Input, Focus)
-		if not Focus then
-			if Input.KeyCode == Enum.KeyCode[WindowConfig.KeyToOpenWindow] and UIHidden then
-				MainWindow.Visible = true
-				UIHidden = false
-				if WindowConfig.FreeMouse then
-					UnlockMouse(true)
-				end
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - mousePos
+            Frame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+        end
+    end)
+end
 
-				showMobileOpenButton()
-			elseif Input.KeyCode == Enum.KeyCode[WindowConfig.KeyToOpenWindow] and not UIHidden then
-				MainWindow.Visible = false
-				UIHidden = true
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
-				if WindowConfig.FreeMouse then
-					UnlockMouse(false)
-				end
-				OrionLib:MakeNotification({
-					Name = "Interface Hidden",
-					Content = "Tap "  .. WindowConfig.KeyToOpenWindow .. " to reopen the interface",
-					Time = 3
-				})
+-- MobileReopenButton with Roblox image 17615525476
+local MobileReopenButton = SetChildren(SetProps(MakeElement("Button"), {
+    Parent = Orion,
+    Size = UDim2.new(0, 40, 0, 40),
+    Position = UDim2.new(0.5, -20, 0, 20),  -- Original position
+    BackgroundTransparency = 0,
+    BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Main,
+    Visible = false,
+    AnchorPoint = Vector2.new(0.5, 0.5)
+}), {
+    AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://17615525476"), {
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.new(0.7, 0, 0.7, 0)
+    }), "Text"),
+    MakeElement("Corner", 1)
+})
 
-				showMobileOpenButton()
-			end
-		end
-	end)
+-- Smooth drag function for MobileReopenButton
+local function MakeDraggable(button)
+    local dragging
+    local dragStart
+    local startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        local newPosition = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+
+        -- Tween for smooth movement
+        TweenService:Create(button, TweenInfo.new(0.2), {Position = newPosition}):Play()
+    end
+
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = button.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            update(input)
+        end
+    end)
+end
+
+-- Apply draggable functionality to the button
+MakeDraggable(MobileReopenButton)
+
+-- Close button function
+AddConnection(CloseBtn.MouseButton1Up, function()
+    MainWindow.Visible = false
+    MobileReopenButton.Visible = true
+    UIHidden = true
+    OrionLib:MakeNotification({
+        Name = "Interface Hidden",
+        Content = "Tap the open button to reopen the interface. Or Press Key M To Close Or Open",
+        Time = 5
+    })
+    WindowConfig.CloseCallback()
+end)
+
+-- Toggle interface visibility with 'M' key
+AddConnection(UserInputService.InputBegan, function(Input)
+    if Input.KeyCode == Enum.KeyCode.M then
+        if UIHidden then
+            MainWindow.Visible = true
+            MobileReopenButton.Visible = false
+            UIHidden = false
+        else
+            MainWindow.Visible = false
+            MobileReopenButton.Visible = true
+            UIHidden = true
+        end
+    end
+end)
+
+-- Toggle the UI by clicking the MobileReopenButton
+AddConnection(MobileReopenButton.Activated, function()
+    MainWindow.Visible = true
+    MobileReopenButton.Visible = false
+end)
+
 
 	AddConnection(MinimizeBtn.MouseButton1Up, function()
 		if Minimized then
@@ -838,14 +828,6 @@ function OrionLib:MakeWindow(WindowConfig)
 	if WindowConfig.IntroEnabled then
 		LoadSequence()
 	end	
-
-	if WindowConfig.FreeMouse then
-		OrionLib:MakeNotification({
-			Name = "Free Mouse mode is on",
-			Content = "if you want it to go back to normal, just press M or close the GUI",
-			Time = 10
-		})
-	end
 
 	local TabFunction = {}
 	function TabFunction:MakeTab(TabConfig)
@@ -1103,7 +1085,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
 				end)
 
-				AddConnection(Click.Activated, function()
+				AddConnection(Click.MouseButton1Up, function()
 					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 					SaveCfg(game.GameId)
 					Toggle:Set(not Toggle.Value)
@@ -1180,39 +1162,6 @@ function OrionLib:MakeWindow(WindowConfig)
 					SliderBar
 				}), "Second")
 
-				local Dragging, DragInput, MousePos, FramePos = false
-
-				AddConnection(SliderBar.InputBegan, function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-						Dragging = true
-						MousePos = Input.Position
-						FramePos = SliderBar.Position
-		
-						AddConnection(Input.Changed, function()
-							if Input.UserInputState == Enum.UserInputState.End then
-								Dragging = false
-								FocusDrag = nil
-							end
-						end)
-					end
-				end)
-				AddConnection(SliderBar.InputChanged, function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch and not FocusDrag then
-						DragInput = Input
-						FocusDrag = DragInput
-					end
-				end)
-
-				AddConnection(UserInputService.InputChanged, function(Input)
-					if Input == DragInput and Input == FocusDrag and Dragging then
-						local SizeScale = math.clamp((Input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
-						Slider:Set(SliderConfig.Min + ((SliderConfig.Max - SliderConfig.Min) * SizeScale)) 
-						SaveCfg(game.GameId)
-					end
-				end)
-
-				--[[
-
 				SliderBar.InputBegan:Connect(function(Input)
 					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then 
 						Dragging = true 
@@ -1224,23 +1173,14 @@ function OrionLib:MakeWindow(WindowConfig)
 					end 
 				end)
 
-				SliderBar.MouseButton1Down:Connect(function()
-					local Location;
-					local loop; loop = RunService.Stepped:Connect(function()
-						if Dragging then
-							Location = UserInputService:GetMouseLocation().X
-							local SizeScale = math.clamp((Location - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
-							Slider:Set(SliderConfig.Min + ((SliderConfig.Max - SliderConfig.Min) * SizeScale)) 
-							SaveCfg(game.GameId)
-						else
-							loop:Disconnect()
-						end
-					end)
+				UserInputService.InputChanged:Connect(function(Input)
+					if Dragging then 
+						local SizeScale = math.clamp((Mouse.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
+						Slider:Set(SliderConfig.Min + ((SliderConfig.Max - SliderConfig.Min) * SizeScale)) 
+						SaveCfg(game.GameId)
+					end
 				end)
 
-				
-				]]--
-				
 				function Slider:Set(Value)
 					self.Value = math.clamp(Round(Value, SliderConfig.Increment), SliderConfig.Min, SliderConfig.Max)
 					TweenService:Create(SliderDrag,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{Size = UDim2.fromScale((self.Value - SliderConfig.Min) / (SliderConfig.Max - SliderConfig.Min), 1)}):Play()
@@ -1460,7 +1400,7 @@ function OrionLib:MakeWindow(WindowConfig)
 				end)
 
 				AddConnection(Click.InputEnded, function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 						if Bind.Binding then return end
 						Bind.Binding = true
 						BindBox.Value.Text = ""
@@ -1734,79 +1674,6 @@ function OrionLib:MakeWindow(WindowConfig)
 				ColorH = 1 - (math.clamp(HueSelection.AbsolutePosition.Y - Hue.AbsolutePosition.Y, 0, Hue.AbsoluteSize.Y) / Hue.AbsoluteSize.Y)
 				ColorS = (math.clamp(ColorSelection.AbsolutePosition.X - Color.AbsolutePosition.X, 0, Color.AbsoluteSize.X) / Color.AbsoluteSize.X)
 				ColorV = 1 - (math.clamp(ColorSelection.AbsolutePosition.Y - Color.AbsolutePosition.Y, 0, Color.AbsoluteSize.Y) / Color.AbsoluteSize.Y)
-				
-				-- Color
-
-				local Dragging, DragInput, MousePos, FramePos = false
-
-				AddConnection(Color.InputBegan, function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-						Dragging = true
-						MousePos = Input.Position
-						FramePos = ColorSelection.Position
-		
-						AddConnection(Input.Changed, function()
-							if Input.UserInputState == Enum.UserInputState.End then
-								Dragging = false
-								FocusDrag = nil
-							end
-						end)
-					end
-				end)
-
-				AddConnection(Color.InputChanged, function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch and not FocusDrag then
-						DragInput = Input
-						FocusDrag = DragInput
-					end
-				end)
-				
-				AddConnection(UserInputService.InputChanged, function(Input)
-					if Input == DragInput and Dragging and Input == FocusDrag then
-						local ColorX = (math.clamp(DragInput.Position.X - Color.AbsolutePosition.X, 0, Color.AbsoluteSize.X) / Color.AbsoluteSize.X)
-						local ColorY = (math.clamp(Input.Position.Y - Color.AbsolutePosition.Y, 0, Color.AbsoluteSize.Y) / Color.AbsoluteSize.Y)
-						ColorSelection.Position = UDim2.new(ColorX, 0, ColorY, 0)
-						ColorS = ColorX
-						ColorV = 1 - ColorY
-						UpdateColorPicker()
-					end
-				end)
-
-				-- Hue
-
-				local Dragging_1, DragInput_1, MousePos_1, FramePos_1 = false
-
-				AddConnection(Hue.InputBegan, function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-						Dragging_1 = true
-						MousePos_1 = Input.Position
-						FramePos_1 = HueSelection.Position
-		
-						AddConnection(Input.Changed, function()
-							if Input.UserInputState == Enum.UserInputState.End then
-								Dragging_1 = false
-								FocusDrag = nil
-							end
-						end)
-					end
-				end)
-				AddConnection(Hue.InputChanged, function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch and not FocusDrag then
-						DragInput_1 = Input
-						FocusDrag = DragInput_1
-					end
-				end)
-				
-				AddConnection(UserInputService.InputChanged, function(Input)
-					if Input == DragInput_1 and Dragging_1 and DragInput_1 == FocusDrag then
-						local HueY = (math.clamp(Input.Position.Y - Hue.AbsolutePosition.Y, 0, Hue.AbsoluteSize.Y) / Hue.AbsoluteSize.Y)
-						HueSelection.Position = UDim2.new(0.5, 0, HueY, 0)
-						ColorH = 1 - HueY
-						UpdateColorPicker()
-					end
-				end)
-
-				--[[
 
 				AddConnection(Color.InputBegan, function(input)
 					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -1850,13 +1717,12 @@ function OrionLib:MakeWindow(WindowConfig)
 				end)
 
 				AddConnection(Hue.InputEnded, function(input)
-					if input.UserInputType == Enum.UserInputType.MouseButton1 and input.UserInputType == Enum.UserInputType.Touch then
+					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 						if HueInput then
 							HueInput:Disconnect()
 						end
 					end
 				end)
-				]]--
 
 				function Colorpicker:Set(Value)
 					Colorpicker.Value = Value
@@ -1995,8 +1861,6 @@ function OrionLib:MakeWindow(WindowConfig)
 	--		writefile("NewLibraryNotification1.txt","The value for the notification having been sent to you.")
 	--	end
 	--end
-	
-
 	
 	return TabFunction
 end   

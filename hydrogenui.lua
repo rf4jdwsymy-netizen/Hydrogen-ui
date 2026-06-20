@@ -355,6 +355,24 @@ CreateElement("RoundFrame", function(Color, Scale, Offset)
 	return Frame
 end)
 
+-- Same Color/Scale/Offset signature as RoundFrame, but builds an ImageLabel instead of a Frame
+-- so the panel itself can display an image (with rounded corners) instead of a flat color.
+CreateElement("RoundImageFrame", function(Color, Scale, Offset, Image)
+	local Frame = Create("ImageLabel", {
+		BackgroundColor3 = Color or Color3.fromRGB(255, 255, 255),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Image = Image or "",
+		ImageColor3 = Color3.fromRGB(255, 255, 255),
+		ScaleType = Enum.ScaleType.Crop
+	}, {
+		Create("UICorner", {
+			CornerRadius = UDim.new(Scale, Offset)
+		})
+	})
+	return Frame
+end)
+
 CreateElement("Button", function()
 	local Button = Create("TextButton", {
 		Text = "",
@@ -659,6 +677,14 @@ function OrionLib:MakeWindow(WindowConfig)
 		}),
 	}), "Second")
 
+	-- The left sidebar (WindowStuff) has a translucent dark backing (BackgroundTransparency = 0.35).
+	-- Give the right-hand content area a touch of the same tint, but much lighter, so the two sides feel consistent.
+	local PageBackgroundOverlay = AddThemeObject(SetProps(MakeElement("Frame"), {
+		Size = UDim2.new(1, -150, 1, -50),
+		Position = UDim2.new(0, 150, 0, 50),
+		BackgroundTransparency = 0.85
+	}), "Second")
+
 	local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 14), {
 		Size = UDim2.new(1, -30, 2, 0),
 		Position = UDim2.new(0, 25, 0, -24),
@@ -671,20 +697,12 @@ function OrionLib:MakeWindow(WindowConfig)
 		Position = UDim2.new(0, 0, 1, -1)
 	}), "Stroke")
 
-	local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+	local MainWindow = SetChildren(SetProps(MakeElement("RoundImageFrame", Color3.fromRGB(255, 255, 255), 0, 10, "rbxassetid://95584010847635"), {
 		Parent = Orion,
 		Position = UDim2.new(0.5, -307, 0.5, -172),
 		Size = UDim2.new(0, 615, 0, 344),
 		ClipsDescendants = true
 	}), {
-		SetProps(MakeElement("Image", "rbxassetid://81727161518400"), {
-			Name = "ThemeBackgroundImage",
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.new(0.5, 0, 0.5, 0),
-			Size = UDim2.new(1, 0, 1, 0),
-			ScaleType = Enum.ScaleType.Crop,
-			ZIndex = 0
-		}),
 		SetChildren(SetProps(MakeElement("TFrame"), {
 			Size = UDim2.new(1, 0, 0, 50),
 			Name = "TopBar"
@@ -705,8 +723,24 @@ function OrionLib:MakeWindow(WindowConfig)
 			}), "Second"), 
 		}),
 		DragPoint,
+		PageBackgroundOverlay,
 		WindowStuff
-	}), "Main")
+	})
+
+	-- ================= Startup Entrance Animation (slide down + slight float) =================
+	-- MainWindow is nudged above its real position right away (before the first render),
+	-- then PlayEntrance() tweens it back down with a slight overshoot for a "floaty" landing feel.
+	local MainWindowTargetPosition = MainWindow.Position
+	MainWindow.Position = UDim2.new(
+		MainWindowTargetPosition.X.Scale, MainWindowTargetPosition.X.Offset,
+		MainWindowTargetPosition.Y.Scale, MainWindowTargetPosition.Y.Offset - 60
+	)
+
+	local function PlayEntrance()
+		MainWindow.Visible = true
+		TweenService:Create(MainWindow, TweenInfo.new(0.85, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = MainWindowTargetPosition}):Play()
+	end
+	-- ================= End Startup Entrance Animation =================
 
 	-- ================= Falling Particle Background (Snow Effect) =================
 	-- Small white dots that drift slowly downward over the whole window, like falling snow.
@@ -913,13 +947,15 @@ function OrionLib:MakeWindow(WindowConfig)
 		TweenService:Create(LoadSequenceText, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
 		wait(2)
 		TweenService:Create(LoadSequenceText, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1}):Play()
-		MainWindow.Visible = true
+		PlayEntrance()
 		LoadSequenceLogo:Destroy()
 		LoadSequenceText:Destroy()
 	end 
 
 	if WindowConfig.IntroEnabled then
 		LoadSequence()
+	else
+		PlayEntrance()
 	end	
 
 	if WindowConfig.FreeMouse then
@@ -1078,6 +1114,7 @@ function OrionLib:MakeWindow(WindowConfig)
 
 				local ButtonFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), {
 					Size = UDim2.new(1, 0, 0, 33),
+					BackgroundTransparency = 0.3,
 					Parent = ItemParent
 				}), {
 					AddThemeObject(SetProps(MakeElement("Label", ButtonConfig.Name, 15), {

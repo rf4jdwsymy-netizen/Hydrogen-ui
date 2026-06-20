@@ -11,23 +11,17 @@ local OrionLib = {
 	ThemeObjects = {},
 	Connections = {},
 	Flags = {},
-
 	Themes = {
-		GoldDark = {
-			Main = Color3.fromRGB(20, 20, 22),
-			Second = Color3.fromRGB(28, 28, 32),
-			Stroke = Color3.fromRGB(212, 175, 55),
-			Divider = Color3.fromRGB(160, 130, 40),
-
-			Text = Color3.fromRGB(245, 245, 245),
-			TextDark = Color3.fromRGB(180, 180, 180),
-
-			Accent = Color3.fromRGB(212, 175, 55),
-			AccentDark = Color3.fromRGB(140, 110, 30)
+		Default = {
+			Main = Color3.fromRGB(235, 250, 255),
+			Second = Color3.fromRGB(220, 245, 255),
+			Stroke = Color3.fromRGB(0, 220, 255),
+			Divider = Color3.fromRGB(120, 220, 255),
+			Text = Color3.fromRGB(20, 40, 50),
+			TextDark = Color3.fromRGB(80, 150, 170)
 		}
 	},
-
-	SelectedTheme = "GoldDark",
+	SelectedTheme = "Default",
 	Folder = nil,
 	SaveCfg = false
 }

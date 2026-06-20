@@ -13,12 +13,12 @@ local OrionLib = {
 	Flags = {},
 	Themes = {
 		Default = {
-			Main = Color3.fromRGB(235, 250, 255),
-			Second = Color3.fromRGB(220, 245, 255),
-			Stroke = Color3.fromRGB(0, 220, 255),
-			Divider = Color3.fromRGB(120, 220, 255),
-			Text = Color3.fromRGB(20, 40, 50),
-			TextDark = Color3.fromRGB(80, 150, 170)
+			Main = Color3.fromRGB(0, 0, 0),
+			Second = Color3.fromRGB(12, 12, 12),
+			Stroke = Color3.fromRGB(45, 45, 45),
+			Divider = Color3.fromRGB(45, 45, 45),
+			Text = Color3.fromRGB(255, 255, 255),
+			TextDark = Color3.fromRGB(170, 170, 170)
 		}
 	},
 	SelectedTheme = "Default",
@@ -601,7 +601,8 @@ function OrionLib:MakeWindow(WindowConfig)
 
 	local WindowStuff = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
 		Size = UDim2.new(0, 150, 1, -50),
-		Position = UDim2.new(0, 0, 0, 50)
+		Position = UDim2.new(0, 0, 0, 50),
+		BackgroundTransparency = 0.35
 	}), {
 		AddThemeObject(SetProps(MakeElement("Frame"), {
 			Size = UDim2.new(1, 0, 0, 10),
@@ -676,13 +677,14 @@ function OrionLib:MakeWindow(WindowConfig)
 		Size = UDim2.new(0, 615, 0, 344),
 		ClipsDescendants = true
 	}), {
-		--SetProps(MakeElement("Image", "rbxassetid://3523728077"), {
-		--	AnchorPoint = Vector2.new(0.5, 0.5),
-		--	Position = UDim2.new(0.5, 0, 0.5, 0),
-		--	Size = UDim2.new(1, 80, 1, 320),
-		--	ImageColor3 = Color3.fromRGB(33, 33, 33),
-		--	ImageTransparency = 0.7
-		--}),
+		SetProps(MakeElement("Image", "rbxassetid://81727161518400"), {
+			Name = "ThemeBackgroundImage",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Size = UDim2.new(1, 0, 1, 0),
+			ScaleType = Enum.ScaleType.Crop,
+			ZIndex = 0
+		}),
 		SetChildren(SetProps(MakeElement("TFrame"), {
 			Size = UDim2.new(1, 0, 0, 50),
 			Name = "TopBar"
@@ -705,6 +707,90 @@ function OrionLib:MakeWindow(WindowConfig)
 		DragPoint,
 		WindowStuff
 	}), "Main")
+
+	-- ================= Falling Particle Background (Snow Effect) =================
+	-- Small white dots that drift slowly downward over the whole window, like falling snow.
+	-- Sits above everything (high ZIndex) but Active = false so it never blocks clicks,
+	-- and ClipsDescendants on MainWindow keeps the dots contained to the rounded panel.
+	local ParticleContainer = Create("Frame", {
+		Name = "ParticleContainer",
+		Parent = MainWindow,
+		Size = UDim2.new(1, 0, 1, 0),
+		Position = UDim2.new(0, 0, 0, 0),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ClipsDescendants = true,
+		ZIndex = 50,
+		Active = false
+	})
+
+	local ParticleSettings = {
+		Count = 69,
+		MinSize = 1,
+		MaxSize = 3,
+		MinSpeed = 14,   -- starting fall speed, pixels/second
+		MaxSpeed = 30,
+		Gravity = 12,    -- gentle acceleration, pixels/second^2
+		SpeedCap = 65,   -- terminal velocity so it stays slow and calm
+		MinTransparency = 0.35,
+		MaxTransparency = 0.75,
+		Color = Color3.fromRGB(255, 255, 255)
+	}
+
+	local Particles = {}
+
+	local function CreateParticle(StartAboveTop)
+		local Size = math.random(ParticleSettings.MinSize, ParticleSettings.MaxSize)
+		local StartY = StartAboveTop and -math.random(0, 200) or math.random(0, 300)
+
+		local Dot = Create("Frame", {
+			Name = "Dot",
+			Parent = ParticleContainer,
+			BackgroundColor3 = ParticleSettings.Color,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, Size, 0, Size),
+			Position = UDim2.new(math.random(0, 1000) / 1000, 0, 0, StartY),
+			BackgroundTransparency = math.random(ParticleSettings.MinTransparency * 100, ParticleSettings.MaxTransparency * 100) / 100,
+			ZIndex = 50
+		})
+		Create("UICorner", {Parent = Dot, CornerRadius = UDim.new(1, 0)})
+
+		return {
+			Object = Dot,
+			XScale = Dot.Position.X.Scale,
+			Speed = math.random(ParticleSettings.MinSpeed * 10, ParticleSettings.MaxSpeed * 10) / 10
+		}
+	end
+
+	for i = 1, ParticleSettings.Count do
+		table.insert(Particles, CreateParticle(false))
+	end
+
+	AddConnection(RunService.Heartbeat, function(DeltaTime)
+		if not ParticleContainer or not ParticleContainer.Parent then return end
+		local ContainerHeight = ParticleContainer.AbsoluteSize.Y
+		if ContainerHeight <= 0 then return end
+
+		for _, Particle in next, Particles do
+			local Dot = Particle.Object
+			if Dot and Dot.Parent then
+				-- Gravity: speed builds up slowly until it hits the soft cap, so the fall stays gentle.
+				Particle.Speed = math.min(Particle.Speed + ParticleSettings.Gravity * DeltaTime, ParticleSettings.SpeedCap)
+
+				local NewOffsetY = Dot.Position.Y.Offset + (Particle.Speed * DeltaTime)
+
+				if NewOffsetY > ContainerHeight + 10 then
+					-- Recycle the dot back to the top with a fresh random X position and speed.
+					Particle.XScale = math.random(0, 1000) / 1000
+					Particle.Speed = math.random(ParticleSettings.MinSpeed * 10, ParticleSettings.MaxSpeed * 10) / 10
+					NewOffsetY = -math.random(0, 40)
+				end
+
+				Dot.Position = UDim2.new(Particle.XScale, 0, 0, NewOffsetY)
+			end
+		end
+	end)
+	-- ================= End Particle Background =================
 
 	if WindowConfig.ShowIcon then
 		WindowName.Position = UDim2.new(0, 50, 0, -24)

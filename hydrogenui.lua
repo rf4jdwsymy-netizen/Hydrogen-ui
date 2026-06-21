@@ -1,47 +1,48 @@
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local LocalPlayer = game:GetService("Players").LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
+local PlayerService = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
-
-local vgs = {
-    MS  =  game:GetService("Players").LocalPlayer:GetMouse(),
-    p   =  game:GetService("Players").LocalPlayer,
-    UIS =  game:GetService("UserInputService"),
-    TS  =  game:GetService("TweenService"),
-    HS  =  game:GetService("HttpService"),
-    RS  =  game:GetService("RunService"),
-    ps  =  game:GetService("Players")
-}
-
-local SearchBarsTXTBox = {}
-
-local rate = 1 / 200 
-local acc = 0
 
 local LocalPlayer = PlayerService.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
+local vgs = {
+    MS  = Mouse,
+    p   = LocalPlayer,
+    UIS = UserInputService,
+    TS  = TweenService,
+    HS  = HttpService,
+    RS  = RunService,
+    ps  = PlayerService
+}
+
+local SearchBarsTXTBox = {}
+
+local rate = 1 / 200
+local acc = 0
+
 local OrionLib = {
-	Elements = {},
-	ThemeObjects = {},
-	Connections = {},
-	Flags = {},
-	Themes = {
-		Default = {
-			Main = Color3.fromRGB(0, 0, 0),
-			Second = Color3.fromRGB(12, 12, 12),
-			Stroke = Color3.fromRGB(45, 45, 45),
-			Divider = Color3.fromRGB(45, 45, 45),
-			Text = Color3.fromRGB(255, 255, 255),
-			TextDark = Color3.fromRGB(170, 170, 170)
-		}
-	},
-	SelectedTheme = "Default",
-	Folder = nil,
-	SaveCfg = false
+    Elements = {},
+    ThemeObjects = {},
+    Connections = {},
+    Flags = {},
+
+    Themes = {
+        Default = {
+            Main = Color3.fromRGB(0, 0, 0),
+            Second = Color3.fromRGB(12, 12, 12),
+            Stroke = Color3.fromRGB(45, 45, 45),
+            Divider = Color3.fromRGB(45, 45, 45),
+            Text = Color3.fromRGB(255, 255, 255),
+            TextDark = Color3.fromRGB(170, 170, 170)
+        }
+    },
+
+    SelectedTheme = "Default",
+    Folder = nil,
+    SaveCfg = false
 }
 
 --Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh

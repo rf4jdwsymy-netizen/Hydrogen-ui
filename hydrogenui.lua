@@ -6,6 +6,24 @@ local Mouse = LocalPlayer:GetMouse()
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 
+local vgs = {
+    MS  =  game:GetService("Players").LocalPlayer:GetMouse(),
+    p   =  game:GetService("Players").LocalPlayer,
+    UIS =  game:GetService("UserInputService"),
+    TS  =  game:GetService("TweenService"),
+    HS  =  game:GetService("HttpService"),
+    RS  =  game:GetService("RunService"),
+    ps  =  game:GetService("Players")
+}
+
+local SearchBarsTXTBox = {}
+
+local rate = 1 / 200 
+local acc = 0
+
+local LocalPlayer = PlayerService.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
 local OrionLib = {
 	Elements = {},
 	ThemeObjects = {},
@@ -565,7 +583,7 @@ function OrionLib:MakeWindow(WindowConfig)
 	MobileOpenButton.BackgroundColor3 = Color3.new(1, 1, 1)
 	MobileOpenButton.BorderSizePixel = 0
 	MobileOpenButton.BorderColor3 = Color3.new(0, 0, 0)
-	MobileOpenButton.Image = "rbxassetid://95584010847635"
+	MobileOpenButton.Image = "rbxassetid://125773756452730"
 	MobileOpenButton.Visible = false
 	MobileOpenButton.Parent = Orion
 	local _Corner = Instance.new("UICorner")
@@ -682,12 +700,12 @@ function OrionLib:MakeWindow(WindowConfig)
 		BackgroundTransparency = 0.85
 	}), "Second")
 
-	local TitleIcon = SetProps(MakeElement("Image", "rbxassetid://113248483989508"), {
-		Size = UDim2.new(0, 28, 0, 28),
-		Position = UDim2.new(0, 12, 0.5, -14),
-		ZIndex = 5,
-		ImageTransparency = 0.1
-	})
+	local TitleIcon = SetProps(MakeElement("Image", "rbxassetid://76162857077293"), {
+    Size = UDim2.new(0, 28, 0, 28),
+    Position = UDim2.new(0, 12, 0.5, -14),
+    ZIndex = 5,
+    ImageTransparency = 0.1
+})
 
 	local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 14), {
 		Size = UDim2.new(1, -30, 2, 0),
@@ -701,7 +719,7 @@ function OrionLib:MakeWindow(WindowConfig)
 		Position = UDim2.new(0, 0, 1, -1)
 	}), "Stroke")
 
-	local MainWindow = SetChildren(SetProps(MakeElement("RoundImageFrame", Color3.fromRGB(255, 255, 255), 0, 10, "rbxassetid://95584010847635"), {
+	local MainWindow = SetChildren(SetProps(MakeElement("RoundImageFrame", Color3.fromRGB(255, 255, 255), 0, 10, "rbxassetid://81727161518400"), {
 		Parent = Orion,
 		Position = UDim2.new(0.5, -307, 0.5, -172),
 		Size = UDim2.new(0, 615, 0, 344),
@@ -2133,3 +2151,5 @@ end
 function OrionLib:Destroy()
 	Orion:Destroy()
 end
+
+return OrionLib

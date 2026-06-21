@@ -558,24 +558,21 @@ function OrionLib:MakeWindow(WindowConfig)
 		UnlockMouse(true)
 	end
 
-	local MobileOpenButton = SetChildren(SetProps(MakeElement("Button"), 
-	
-	{
-		BackgroundTransparency = 0, 
-		Parent = Orion, 
-		Text =  "Open",
-		TextScaled = true,
-		TextSize = 14,
-		TextColor3 = Color3.new(0, 0, 0),
-		BackgroundColor = BrickColor.new(0, 0, 0),
-		TextStrokeColor3 = Color3.new(255, 255, 255),
-		TextStrokeTransparency = 0,
-		Size = UDim2.new(0.035, 0, 0.035, 0),
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 0, 0.5, 0), 
-		Visible = false, 
-		Font = Enum.Font.GothamBold
-	}), {MakeElement("Corner", 0.25), SetProps(MakeElement("AspectRatio"), {DominantAxis = 0, AspectRatio = 0.986, AspectType = 1})})
+	local MobileOpenButton = Instance.new("ImageButton")
+	MobileOpenButton.Name = "MobileOpenButton"
+	MobileOpenButton.Position = UDim2.new(0.481279, 0, 0.470732, 0)
+	MobileOpenButton.Size = UDim2.new(0, 47, 0, 47)
+	MobileOpenButton.BackgroundColor3 = Color3.new(1, 1, 1)
+	MobileOpenButton.BorderSizePixel = 0
+	MobileOpenButton.BorderColor3 = Color3.new(0, 0, 0)
+	MobileOpenButton.Image = "rbxassetid://95584010847635"
+	MobileOpenButton.Visible = false
+	MobileOpenButton.Parent = Orion
+	local _Corner = Instance.new("UICorner")
+	_Corner.Parent = MobileOpenButton
+	local _Stroke = Instance.new("UIStroke")
+	_Stroke.Color = Color3.new(0.686275, 0.686275, 0.686275)
+	_Stroke.Parent = MobileOpenButton
 
 	MakeDraggable(MobileOpenButton, MobileOpenButton)
 
@@ -685,9 +682,16 @@ function OrionLib:MakeWindow(WindowConfig)
 		BackgroundTransparency = 0.85
 	}), "Second")
 
+	local TitleIcon = SetProps(MakeElement("Image", "rbxassetid://113248483989508"), {
+		Size = UDim2.new(0, 28, 0, 28),
+		Position = UDim2.new(0, 12, 0.5, -14),
+		ZIndex = 5,
+		ImageTransparency = 0.1
+	})
+
 	local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 14), {
 		Size = UDim2.new(1, -30, 2, 0),
-		Position = UDim2.new(0, 25, 0, -24),
+		Position = UDim2.new(0, 48, 0, -24),
 		Font = Enum.Font.GothamBlack,
 		TextSize = 20
 	}), "Text")
@@ -707,6 +711,7 @@ function OrionLib:MakeWindow(WindowConfig)
 			Size = UDim2.new(1, 0, 0, 50),
 			Name = "TopBar"
 		}), {
+			TitleIcon,
 			WindowName,
 			WindowTopBarLine,
 			AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
@@ -1174,7 +1179,8 @@ function OrionLib:MakeWindow(WindowConfig)
 				local ToggleBox = SetChildren(SetProps(MakeElement("RoundFrame", ToggleConfig.Color, 0, 4), {
 					Size = UDim2.new(0, 24, 0, 24),
 					Position = UDim2.new(1, -24, 0.5, 0),
-					AnchorPoint = Vector2.new(0.5, 0.5)
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					BackgroundTransparency = 0.3
 				}), {
 					SetProps(MakeElement("Stroke"), {
 						Color = ToggleConfig.Color,
@@ -1192,6 +1198,7 @@ function OrionLib:MakeWindow(WindowConfig)
 
 				local ToggleFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), {
 					Size = UDim2.new(1, 0, 0, 38),
+					BackgroundTransparency = 0.3,
 					Parent = ItemParent
 				}), {
 					AddThemeObject(SetProps(MakeElement("Label", ToggleConfig.Name, 15), {
@@ -1288,6 +1295,7 @@ function OrionLib:MakeWindow(WindowConfig)
 
 				local SliderFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 4), {
 					Size = UDim2.new(1, 0, 0, 65),
+					BackgroundTransparency = 0.3,
 					Parent = ItemParent
 				}), {
 					AddThemeObject(SetProps(MakeElement("Label", SliderConfig.Name, 15), {
@@ -1408,6 +1416,7 @@ function OrionLib:MakeWindow(WindowConfig)
 
 				local DropdownFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), {
 					Size = UDim2.new(1, 0, 0, 38),
+					BackgroundTransparency = 0.3,
 					Parent = ItemParent,
 					ClipsDescendants = true
 				}), {
@@ -2124,5 +2133,3 @@ end
 function OrionLib:Destroy()
 	Orion:Destroy()
 end
-
-return OrionLib
